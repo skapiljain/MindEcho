@@ -1,6 +1,6 @@
 # MindEcho
 
-> **Adaptive Spaced Retention & Feynman Learning Platform**  
+> **Adaptive Spaced Retention & Feynman Learning Platform**
 > *Developed for SIH 2026 — Team: All Six Not Found*
 
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D20.0-brightgreen.svg)](https://nodejs.org/)
@@ -16,18 +16,19 @@
 
 ## 📌 Table of Contents
 
-- [Executive Product Overview](#-executive-product-overview)
-- [Key Features](#-key-features)
-- [Scientific Foundation & Algorithms](#-scientific-foundation--algorithms)
-- [Monorepo Architecture](#-monorepo-architecture)
-- [Tech Stack](#-tech-stack)
-- [Quick Start & Setup](#-quick-start--setup)
-- [Available Scripts Reference](#-available-scripts-reference)
-- [Frontend Pages & Route Map](#-frontend-pages--route-map)
-- [Backend API Specification](#-backend-api-specification)
-- [Environment Variables Configuration](#-environment-variables-configuration)
-- [Docker & Infrastructure](#-docker--infrastructure)
-- [Team & Acknowledgments](#-team--acknowledgments)
+* [Executive Product Overview](#-executive-product-overview)
+* [Key Features](#-key-features)
+* [Scientific Foundation & Algorithms](#-scientific-foundation--algorithms)
+* [System Workflow](#-system-workflow)
+* [Monorepo Architecture](#-monorepo-architecture)
+* [Tech Stack](#-tech-stack)
+* [Quick Start & Setup](#-quick-start--setup)
+* [Available Scripts Reference](#-available-scripts-reference)
+* [Frontend Pages & Route Map](#-frontend-pages--route-map)
+* [Backend API Specification](#-backend-api-specification)
+* [Environment Variables Configuration](#-environment-variables-configuration)
+* [Docker & Infrastructure](#-docker--infrastructure)
+* [Team & Acknowledgments](#-team--acknowledgments)
 
 ---
 
@@ -38,16 +39,19 @@
 By synthesizing the **Feynman Technique** (explaining complex concepts in simple terms) with an **Adaptive Spaced Repetition Engine (SuperMemo SM-2)**, MindEcho transforms passive study into active recall and lifelong mastery.
 
 ### The Problem
-- **Passive Memory Decay**: Learners lose up to 70% of new knowledge within 24 hours without structured active recall.
-- **Fixed-Interval Calendars**: Standard study planners use rigid review intervals that fail to accommodate individual memory strength or sudden exam deadlines.
+
+* **Passive Memory Decay**: Learners lose up to 70% of new knowledge within 24 hours without structured active recall.
+* **Fixed-Interval Calendars**: Standard study planners use rigid review intervals that fail to accommodate individual memory strength or sudden exam deadlines.
 
 ### The Solution
+
 1. **Feynman Voice & Text Practice Studio**: Capture spoken audio or written explanations of study concepts.
 2. **AI Comprehension Evaluation**: Multi-modal evaluation (Whisper STT + LLM scoring) analyzes simplicity, accuracy, and missing key ideas.
 3. **Adaptive Retention Curves**: Dynamic calculation of memory decay ($R = e^{-t/S}$) and optimal review windows based on evaluation scores.
 4. **Dual Study Modes**:
-   - **Exam Mode**: Dynamically compresses revision intervals to guarantee 100% topic coverage prior to a target exam date.
-   - **Skill Mastery Mode**: Gradually expands review windows for sustainable, lifelong retention.
+
+   * **Exam Mode**: Dynamically compresses revision intervals to guarantee 100% topic coverage prior to a target exam date.
+   * **Skill Mastery Mode**: Gradually expands review windows for sustainable, lifelong retention.
 5. **Notion-Style Knowledge Hub**: Workspace with interactive notes, live reading progress indicators, search/filter, and instant practice triggers.
 
 ---
@@ -55,47 +59,55 @@ By synthesizing the **Feynman Technique** (explaining complex concepts in simple
 ## ✨ Key Features
 
 ### 🎙️ Feynman Technique Audio & Text Studio
-- Record verbal explanations directly via the Web Audio API or type simplified summaries.
-- Automatic Speech-to-Text (STT) transcription.
-- Multi-dimensional scoring (Clarity, Key Concept Coverage, Simplicity) with actionable improvement tips.
+
+* Record verbal explanations directly via the Web Audio API or type simplified summaries.
+* Automatic Speech-to-Text (STT) transcription.
+* Multi-dimensional scoring (Clarity, Key Concept Coverage, Simplicity) with actionable improvement tips.
 
 ### 📅 Adaptive Spaced Repetition Calendar
-- Visual calendar showing upcoming review schedules color-coded by retention health.
-- Switch seamlessly between **Exam Mode** and **Skill Mastery Mode**.
-- Set critical milestones and exam dates with real-time schedule auto-adjustment.
+
+* Visual calendar showing upcoming review schedules color-coded by retention health.
+* Switch seamlessly between **Exam Mode** and **Skill Mastery Mode**.
+* Set critical milestones and exam dates with real-time schedule auto-adjustment.
 
 ### 📚 Notion-Style Interactive Workspace
-- Markdown editor and viewer for structured course notes.
-- Live `ReadingProgress` tracking bar with estimated reading time (words-per-minute).
-- One-click launch into practice tests for any note.
+
+* Markdown editor and viewer for structured course notes.
+* Live `ReadingProgress` tracking bar with estimated reading time (words-per-minute).
+* One-click launch into practice tests for any note.
 
 ### 📊 Learning Analytics & Retention Dashboard
-- Retention health score matrix tracking overall knowledge decay across subjects.
-- "Due Today" item queue for high-priority review sessions.
-- Interactive charts and streak counters to boost learner engagement.
+
+* Retention health score matrix tracking overall knowledge decay across subjects.
+* "Due Today" item queue for high-priority review sessions.
+* Interactive charts and streak counters to boost learner engagement.
 
 ### 💳 Tiered LLM Token & Payment System
-- Sleek starfield pricing UI with monthly/annual discount toggles and interactive checkout interface.
+
+* Sleek starfield pricing UI with monthly/annual discount toggles and interactive checkout interface.
 
 ---
 
 ## 🔬 Scientific Foundation & Algorithms
 
 ### 1. Ebbinghaus Forgetting Curve
+
 Memory retention decay is modeled as:
-$$R = e^{-\frac{t}{S}}$$
+\(R = e^{-\frac{t}{S}}\)
 
 where:
-- $R$ = Retrievability / Memory Retention (0.0 to 1.0)
-- $t$ = Time elapsed since last review (days)
-- $S$ = Memory Stability (calculated from review performance history)
+
+* $R$ = Retrievability / Memory Retention (0.0 to 1.0)
+* $t$ = Time elapsed since last review (days)
+* $S$ = Memory Stability (calculated from review performance history)
 
 ### 2. SuperMemo SM-2 Interval Update Logic
+
 After each practice session with quality score $q \in [0, 5]$ (mapped from LECTOR 1-10 score):
 
-$$EF' = \max\left(1.3, \, EF + \left(0.1 - (5 - q) \times (0.08 + (5 - q) \times 0.02)\right)\right)$$
+\(EF' = \max\left(1.3, \, EF + \left(0.1 - (5 - q) \times (0.08 + (5 - q) \times 0.02)\right)\right)\)
 
-$$I(n) = \begin{cases} 
+$$$I(n) = \begin{cases} 
 1 & \text{if } n = 1 \\
 6 & \text{if } n = 2 \\
 I(n-1) \times EF' & \text{if } n > 2 
@@ -104,6 +116,34 @@ I(n-1) \times EF' & \text{if } n > 2
 ### 3. Exam Mode Dynamic Compression
 When **Exam Mode** is enabled with a target date $T_{\text{exam}}$, review intervals $I(n)$ are scaled by a compression factor $C$:
 $$C = \min\left(1.0, \, \frac{T_{\text{exam}} - T_{\text{current}}}{\sum I(n)}\right)$$
+
+---
+
+## System Workflow
+
+```mermaid
+flowchart TD
+    A[User opens app] --> B{Registered?}
+    B -- No --> C[Create account<br/>POST /auth/register]
+    C --> D[Sign in<br/>POST /auth/login]
+    B -- Yes --> D
+    D --> E{Valid credentials?}
+    E -- No --> F[Show error<br/>Wrong credentials]
+    E -- Yes --> G[Dashboard<br/>Retention health, due today]
+    G --> H[Knowledge workspace<br/>Notes, search, reading progress]
+    H --> I[Feynman studio<br/>Record voice or type explanation]
+    I --> J[AI evaluation<br/>Speech-to-text + LLM scoring]
+    J --> K{Good enough?}
+    K -- "No: retry with feedback" --> I
+    K -- Yes --> L[Adaptive revision engine<br/>Updates SM-2 interval and easiness]
+    L --> M{Learning mode?}
+    M -- Exam --> N[Exam mode<br/>Deadline-aware compression]
+    M -- Skill --> O[Skill mastery mode<br/>Long-term retention plan]
+    N --> P[Smart revision calendar<br/>Upcoming reviews, milestones]
+    O --> P
+    P --> Q[Improved retention<br/>Stronger recall, less decay]
+    Q -- repeat cycle --> H
+```
 
 ---
 
@@ -122,7 +162,7 @@ MindEcho/
 │   │   │   └── types/          # TypeScript interfaces & state schemas
 │   │   ├── index.css           # Vanilla CSS tokens & Tailwind CSS imports
 │   │   └── vite.config.ts      # Vite configuration & path aliases
-│   │
+│
 │   └── api/                    # Backend REST API (Fastify 5 + TypeScript)
 │       ├── src/
 │       │   ├── config/         # Zod environment variable parsing & validation
@@ -319,7 +359,7 @@ The included `docker-compose.yml` spins up required local dependencies:
 
 ## 👥Team & Acknowledgments
 
-**Team: All Six Not Found**
+**Team: All Six Not Found**  
 *SIH 2026 Hackathon Project*
 
 - Built with modern web performance and cognitive neuroscience principles in mind.
@@ -329,3 +369,4 @@ The included `docker-compose.yml` spins up required local dependencies:
 ---
 
 <p align="center">Made with MindEcho — Empowering learners to master anything through active recall.</p>
+$$$
