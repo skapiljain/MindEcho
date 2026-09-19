@@ -1,4 +1,4 @@
-import { Schema, model, type InferSchemaType, type Types } from 'mongoose'
+import { Schema, model, type HydratedDocument, type InferSchemaType } from 'mongoose'
 
 const practiceQuestionSchema = new Schema(
   {
@@ -39,10 +39,8 @@ noteSchema.index({ userId: 1, nextReviewDate: 1 })
 noteSchema.index({ userId: 1, subject: 1 })
 noteSchema.index({ title: 'text', content: 'text' })
 
-export type NoteDocument = InferSchemaType<typeof noteSchema> & {
-  _id: Types.ObjectId
-  createdAt: Date
-  updatedAt: Date
-}
+export type PracticeQuestion = InferSchemaType<typeof practiceQuestionSchema>
+export type NoteFields = InferSchemaType<typeof noteSchema>
+export type NoteDocument = HydratedDocument<NoteFields>
 
 export const Note = model('Note', noteSchema)

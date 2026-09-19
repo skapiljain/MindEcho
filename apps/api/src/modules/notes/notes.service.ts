@@ -1,6 +1,6 @@
 import { Evaluation } from '../../models/Evaluation.js'
 import { ImportantDate } from '../../models/ImportantDate.js'
-import { Note, type NoteDocument } from '../../models/Note.js'
+import { Note, type NoteDocument, type PracticeQuestion } from '../../models/Note.js'
 import { User } from '../../models/User.js'
 import { applyReviewAfterEvaluation, type CalendarContext } from '../analytics/spaced-repetition.service.js'
 import {
@@ -28,6 +28,50 @@ async function findOwnedNote(userId: string, noteId: string): Promise<NoteDocume
     _id: fromPublicNoteId(noteId),
     userId: fromPublicUserId(userId),
   })
+
+  if (!note) {
+    throw new ApiError(404, 'NOTE_NOT_FOUND', `Note with id ${noteId} not found`)
+  }
+
+  return note
+}
+
+function toPracticeQuestionRecord(item: PracticeQuestion): PracticeQuestion {
+  return {
+    id: item.id,
+    question: item.question,
+    adopted: item.adopted ?? true,
+    source: item.source === 'user' ? 'user' : 'ai',
+    ...(item.score != null ? { score: item.score } : {}),
+    ...(item.lastAnsweredAt ? { lastAnsweredAt: item.lastAnsweredAt } : {}),
+  }
+}
+
+function buildPracticeQuestion(
+  question: string,
+  source: 'ai' | 'user',
+): PracticeQuestion {
+  return {
+    id: createPracticeQuestionId(),
+    question,
+    adopted: true,
+    source,
+  }
+}
+
+async function savePracticeQuestions(
+  publicUserId: string,
+  noteId: string,
+  practiceQuestions: PracticeQuestion[],
+): Promise<NoteDocument> {
+  const note = await Note.findOneAndUpdate(
+    {
+      _id: fromPublicNoteId(noteId),
+      userId: fromPublicUserId(publicUserId),
+    },
+    { $set: { practiceQuestions } },
+    { new: true },
+  )
 
   if (!note) {
     throw new ApiError(404, 'NOTE_NOT_FOUND', `Note with id ${noteId} not found`)
@@ -286,17 +330,13 @@ export async function generatePracticeQuestionsForNote(
     },
   )
 
-  const nextQuestions = generated.map((item) => ({
-    id: createPracticeQuestionId(),
-    question: item.question,
-    adopted: true,
-    source: 'ai' as const,
-  }))
+  const nextQuestions = generated.map((item) => buildPracticeQuestion(item.question, 'ai'))
+  const practiceQuestions = append
+    ? [...existing.map(toPracticeQuestionRecord), ...nextQuestions]
+    : nextQuestions
 
-  note.practiceQuestions = append ? [...existing, ...nextQuestions] : nextQuestions
-  await note.save()
-
-  return serializeNote(note)
+  const updated = await savePracticeQuestions(publicUserId, noteId, practiceQuestions)
+  return serializeNote(updated)
 }
 
 export async function addPracticeQuestionToNote(
@@ -305,19 +345,13 @@ export async function addPracticeQuestionToNote(
   question: string,
 ) {
   const note = await findOwnedNote(publicUserId, noteId)
-
-  note.practiceQuestions = [
-    ...(note.practiceQuestions ?? []),
-    {
-      id: createPracticeQuestionId(),
-      question,
-      adopted: true,
-      source: 'user',
-    },
+  const practiceQuestions = [
+    ...(note.practiceQuestions ?? []).map(toPracticeQuestionRecord),
+    buildPracticeQuestion(question, 'user'),
   ]
 
-  await note.save()
-  return serializeNote(note)
+  const updated = await savePracticeQuestions(publicUserId, noteId, practiceQuestions)
+  return serializeNote(updated)
 }
 
 export async function updatePracticeQuestionOnNote(
@@ -327,20 +361,26 @@ export async function updatePracticeQuestionOnNote(
   updates: { adopted?: boolean; score?: number },
 ) {
   const note = await findOwnedNote(publicUserId, noteId)
-  const question = (note.practiceQuestions ?? []).find((item) => item.id === questionId)
+  const practiceQuestions = (note.practiceQuestions ?? []).map((item) => {
+    if (item.id !== questionId) {
+      return toPracticeQuestionRecord(item)
+    }
 
-  if (!question) {
+    return {
+      ...toPracticeQuestionRecord(item),
+      ...(updates.adopted !== undefined ? { adopted: updates.adopted } : {}),
+      ...(updates.score !== undefined
+        ? { score: updates.score, lastAnsweredAt: new Date() }
+        : {}),
+    }
+  })
+
+  if (!practiceQuestions.some((item) => item.id === questionId)) {
     throw new ApiError(404, 'QUESTION_NOT_FOUND', `Practice question ${questionId} not found`)
   }
 
-  if (updates.adopted !== undefined) question.adopted = updates.adopted
-  if (updates.score !== undefined) {
-    question.score = updates.score
-    question.lastAnsweredAt = new Date()
-  }
-
-  await note.save()
-  return serializeNote(note)
+  const updated = await savePracticeQuestions(publicUserId, noteId, practiceQuestions)
+  return serializeNote(updated)
 }
 
 export async function scorePracticeQuestionOnNote(
