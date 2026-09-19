@@ -93,10 +93,10 @@ export function ContactSection() {
                       Mock Email Addresses
                     </p>
                     <p className="mt-1 text-base font-semibold text-white">
-                      support@memoroute.ai
+                      support@mindecho.ai
                     </p>
                     <p className="text-xs text-white/50">
-                      contact@memoroute.ai
+                      contact@mindecho.ai
                     </p>
                   </div>
                 </div>

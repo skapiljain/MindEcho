@@ -248,7 +248,7 @@ export function WhyUsSection() {
             </span>
           </div>
           <h2 className="mb-4 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            Why MemoRoute Outperforms Flashcards &amp; Static Notes
+            Why MindEcho Outperforms Flashcards &amp; Static Notes
           </h2>
           <p className="mx-auto max-w-2xl text-base text-[#f5efe8]/75">
             Designed ground-up on cognitive neuroscience to convert short-term study into permanent recall.

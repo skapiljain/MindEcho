@@ -42,7 +42,7 @@ export function Hero() {
           </h1>
 
           <p className="mb-6 max-w-lg text-sm leading-relaxed text-[#f5efe8]/80 sm:mb-8 sm:text-lg">
-            MemoRoute helps you truly understand, retain and perform better using
+            MindEcho helps you truly understand, retain and perform better using
             the power of Samuel LECTOR AI evaluation and personalized spaced repetition.
           </p>
 
@@ -90,7 +90,7 @@ export function Hero() {
           {/* Relatable Connection Story Box */}
           <div className="glass hidden rounded-2xl border border-white/15 p-4 text-xs leading-relaxed text-[#f5efe8]/80 backdrop-blur-md max-w-lg sm:block">
             <p className="font-semibold text-[#e8c89b] mb-1">
-              &ldquo;I used to re-read notes 10 times and still forget core topics on exam day. MemoRoute&apos;s active Feynman voice feedback with Samuel AI helped me retain 94% of my syllabus.&rdquo;
+              &ldquo;I used to re-read notes 10 times and still forget core topics on exam day. MindEcho&apos;s active Feynman voice feedback with Samuel AI helped me retain 94% of my syllabus.&rdquo;
             </p>
             <p className="text-[11px] text-white/50 text-right">— Alex M., CS &amp; Pre-Med Student</p>
           </div>

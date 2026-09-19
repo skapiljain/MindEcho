@@ -11,6 +11,15 @@ export interface RetentionImpact {
   reason: string
 }
 
+export interface PracticeQuestion {
+  id: string
+  question: string
+  score?: number
+  adopted: boolean
+  source: 'ai' | 'user'
+  lastAnsweredAt?: string
+}
+
 export interface FeynmanEvaluationResponse {
   evaluationId: string
   noteId: string
@@ -28,6 +37,8 @@ export interface FeynmanEvaluationResponse {
   misconceptions: string[]
   nextPrompt: string
   retentionImpact: RetentionImpact
+  answeredQuestionId?: string
+  practiceQuestions: PracticeQuestion[]
   updatedNoteState: {
     practiceCount: number
     lastPracticed: string
@@ -60,6 +71,7 @@ export async function submitTextEvaluation(input: {
   noteId: string
   explanationText: string
   selfRating?: number
+  questionId?: string
 }): Promise<FeynmanEvaluationResponse> {
   return api<FeynmanEvaluationResponse>('/evaluations/feynman', {
     method: 'POST',
@@ -71,11 +83,13 @@ export async function submitVoiceEvaluation(input: {
   noteId: string
   audioBlob: Blob
   selfRating?: number
+  questionId?: string
 }): Promise<FeynmanEvaluationResponse> {
   const token = localStorage.getItem('memoroute_token')
 
   const formData = new FormData()
   formData.append('noteId', input.noteId)
+  if (input.questionId) formData.append('questionId', input.questionId)
   formData.append('audioFile', input.audioBlob, 'explanation.webm')
   if (input.selfRating != null) {
     formData.append('selfRating', String(input.selfRating))

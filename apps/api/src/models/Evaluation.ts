@@ -41,6 +41,7 @@ const evaluationSchema = new Schema(
     subConcepts: { type: [subConceptSchema], default: [] },
     misconceptions: { type: [String], default: [] },
     nextPrompt: { type: String },
+    questionId: { type: String },
     retentionImpact: { type: retentionImpactSchema },
     audioUrl: { type: String },
   },

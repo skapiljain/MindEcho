@@ -8,7 +8,7 @@ export function Footer() {
         <div className="flex flex-col items-center sm:items-start gap-2">
           <div className="flex items-center gap-2 text-white">
             <Brain className="h-6 w-6 text-[#e8c89b]" />
-            <span className="font-bold text-lg">MemoRoute</span>
+            <span className="font-bold text-lg">MindEcho</span>
           </div>
           <p className="text-xs text-[#f5efe8]/60 max-w-xs text-center sm:text-left">
             Adaptive Spaced Retention &amp; LECTOR AI Evaluation System &bull; SIH 2026
@@ -23,7 +23,7 @@ export function Footer() {
           </div>
           <div className="flex items-center gap-1.5 rounded-full border border-[#e8c89b]/30 bg-[#e8c89b]/10 px-4 py-2">
             <Mail className="h-3.5 w-3.5" />
-            <span>support@memoroute.ai</span>
+            <span>support@mindecho.ai</span>
           </div>
         </div>
 
@@ -39,7 +39,7 @@ export function Footer() {
       </div>
 
       <div className="mx-auto mt-8 max-w-7xl border-t border-white/5 pt-6 text-center text-[11px] text-white/40">
-        &copy; 2026 MemoRoute AI. All research papers &amp; cognitive retention models reserved.
+        &copy; 2026 MindEcho AI. All research papers &amp; cognitive retention models reserved.
       </div>
     </footer>
   )

@@ -9,16 +9,19 @@ import { fromPublicEvalId, toPublicEvalId } from '../../shared/utils/eval-id.js'
 import { fromPublicNoteId, toPublicNoteId } from '../../shared/utils/note-id.js'
 import { fromPublicUserId } from '../../shared/utils/user-id.js'
 import { applyReviewAfterEvaluation, type CalendarContext } from '../analytics/spaced-repetition.service.js'
+import { scorePracticeQuestionOnNote } from '../notes/notes.service.js'
 import {
   assertCanEvaluate,
   recordEvaluationUsage,
 } from '../billing/usage-policy.service.js'
 import { domainEvents } from '../../shared/events/domain-events.js'
+import { serializeNote } from '../notes/notes.serializer.js'
 import type { FeynmanEvaluationResponse } from './evaluations.schemas.js'
 import { serializeEvaluationDetail } from './evaluations.serializer.js'
 
 export interface SubmitFeynmanInput {
   noteId: string
+  questionId?: string
   explanationText?: string
   audioBuffer?: Buffer
   audioMimeType?: string
@@ -132,6 +135,7 @@ export async function submitFeynmanEvaluation(
     misconceptions: result.misconceptions,
     nextPrompt: result.nextPrompt,
     retentionImpact: result.retentionImpact,
+    ...(input.questionId ? { questionId: input.questionId } : {}),
   })
 
   if (input.mode === 'voice' && input.audioBuffer) {
@@ -170,6 +174,17 @@ export async function submitFeynmanEvaluation(
     },
   })
 
+  if (input.questionId) {
+    await scorePracticeQuestionOnNote(
+      publicUserId,
+      input.noteId,
+      input.questionId,
+      result.lectorScore,
+    )
+  }
+
+  const updatedNote = await Note.findById(note._id)
+
   await recordEvaluationUsage(publicUserId)
 
   domainEvents.emit('EvaluationCompleted', {
@@ -198,6 +213,8 @@ export async function submitFeynmanEvaluation(
       retentionHealth: reviewUpdate.retentionHealth,
       nextReviewDate: formatDateOnly(reviewUpdate.nextReviewDate),
     },
+    ...(input.questionId ? { answeredQuestionId: input.questionId } : {}),
+    practiceQuestions: updatedNote ? serializeNote(updatedNote).practiceQuestions : [],
   }
 }
 

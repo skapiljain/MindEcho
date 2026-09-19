@@ -55,7 +55,7 @@ export function BlogSection() {
             Literature Paper Samples & Cognitive Science Publications
           </h2>
           <p className="mx-auto max-w-2xl text-base text-[#f5efe8]/75">
-            Explore peer-reviewed publications and literature samples powering MemoRoute&apos;s LECTOR AI engine and memory algorithms.
+            Explore peer-reviewed publications and literature samples powering MindEcho&apos;s LECTOR AI engine and memory algorithms.
           </p>
         </motion.div>
 

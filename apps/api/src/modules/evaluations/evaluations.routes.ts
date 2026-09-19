@@ -9,6 +9,7 @@ import { getEvaluation, getEvaluationAudio, listEvaluations, submitFeynmanEvalua
 
 interface MultipartFields {
   noteId?: string
+  questionId?: string
   explanationText?: string
   selfRating?: number
   audioBuffer?: Buffer
@@ -30,6 +31,7 @@ async function parseMultipart(request: FastifyRequest): Promise<MultipartFields>
     const value = String(part.value)
 
     if (part.fieldname === 'noteId') fields.noteId = value
+    if (part.fieldname === 'questionId') fields.questionId = value
     if (part.fieldname === 'explanationText') fields.explanationText = value
     if (part.fieldname === 'selfRating') fields.selfRating = Number.parseInt(value, 10)
   }
@@ -49,6 +51,7 @@ async function handleFeynmanEvaluation(request: FastifyRequest, reply: FastifyRe
 
     const result = await submitFeynmanEvaluation(request.user!.id, {
       noteId: fields.noteId,
+      questionId: fields.questionId,
       explanationText: fields.explanationText,
       audioBuffer: fields.audioBuffer,
       audioMimeType: fields.audioMimeType,
@@ -62,6 +65,7 @@ async function handleFeynmanEvaluation(request: FastifyRequest, reply: FastifyRe
   const body = request.body as FeynmanJsonBody
   const result = await submitFeynmanEvaluation(request.user!.id, {
     noteId: body.noteId,
+    questionId: body.questionId,
     explanationText: body.explanationText,
     selfRating: body.selfRating,
     mode: 'text',

@@ -213,7 +213,7 @@ export function ProblemSection() {
               </h3>
 
               <p className="mb-8 text-sm leading-relaxed text-[#f5efe8]/75 max-w-xl">
-                MemoRoute replaces static timers with dynamic Feynman active recall evaluations. Instead of guessing when to study, LECTOR AI spaces reviews at the exact moment before memory fades.
+                MindEcho replaces static timers with dynamic Feynman active recall evaluations. Instead of guessing when to study, LECTOR AI spaces reviews at the exact moment before memory fades.
               </p>
 
               <div className="flex flex-wrap items-center gap-4">

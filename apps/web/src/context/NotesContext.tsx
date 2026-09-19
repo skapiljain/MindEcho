@@ -40,6 +40,17 @@ export interface NoteItem {
   nextReviewDate?: string
   interval?: number
   repetition?: number
+  similarity?: number
+  practiceQuestions?: PracticeQuestion[]
+}
+
+export interface PracticeQuestion {
+  id: string
+  question: string
+  score?: number
+  adopted: boolean
+  source: 'ai' | 'user'
+  lastAnsweredAt?: string
 }
 
 export interface PracticeExplanation {

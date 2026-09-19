@@ -29,11 +29,41 @@ export const listNotesQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(50),
   subject: z.string().trim().optional(),
   search: z.string().trim().optional(),
+  searchMode: z.enum(['text', 'semantic']).default('semantic'),
+  minScore: z.coerce.number().min(0).max(1).default(0.22),
 })
 
 export type CreateNoteBody = z.infer<typeof createNoteBodySchema>
 export type UpdateNoteBody = z.infer<typeof updateNoteBodySchema>
 export type ListNotesQuery = z.infer<typeof listNotesQuerySchema>
+
+export interface PracticeQuestionResponse {
+  id: string
+  question: string
+  score?: number
+  adopted: boolean
+  source: 'ai' | 'user'
+  lastAnsweredAt?: string
+}
+
+export const generatePracticeQuestionsBodySchema = z.object({
+  count: z.number().int().min(1).max(8).default(4),
+  append: z.boolean().default(false),
+})
+
+export const addPracticeQuestionBodySchema = z.object({
+  question: z.string().trim().min(8).max(500),
+})
+
+export const updatePracticeQuestionBodySchema = z
+  .object({
+    adopted: z.boolean(),
+    score: z.number().min(0).max(10),
+  })
+  .partial()
+  .refine((data) => Object.keys(data).length > 0, {
+    message: 'At least one field must be provided',
+  })
 
 export interface NoteResponse {
   id: string
@@ -50,4 +80,6 @@ export interface NoteResponse {
   nextReviewDate?: string
   interval?: number
   repetition?: number
+  similarity?: number
+  practiceQuestions: PracticeQuestionResponse[]
 }

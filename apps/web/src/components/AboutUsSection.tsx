@@ -122,7 +122,7 @@ export function AboutUsSection() {
             </span>
           </div>
           <h2 className="mb-4 text-3xl font-bold tracking-tight text-white sm:text-5xl">
-            About Us &amp; The Minds Behind MemoRoute
+            About Us &amp; The Minds Behind MindEcho
           </h2>
           <p className="mx-auto max-w-2xl text-sm sm:text-base text-[#f5efe8]/75 leading-relaxed">
             Drag or click arrows to explore all 6 team leaders in a continuous circular loop.

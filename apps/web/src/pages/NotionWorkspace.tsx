@@ -17,6 +17,7 @@ import { AuthenticatedAudioPlayer } from '../components/dashboard/AuthenticatedA
 import { useAuth } from '../context/AuthContext'
 import { useNotes } from '../context/NotesContext'
 import { useApi } from '../lib/api/client'
+import { fetchNotes, reindexNoteEmbeddings } from '../lib/api/notes.api'
 import { listEvaluations, type EvaluationDetail } from '../lib/api/evaluations.api'
 
 export function NotionWorkspace() {
@@ -26,6 +27,9 @@ export function NotionWorkspace() {
   const scrollerRef = useRef<HTMLTextAreaElement>(null)
 
   const [search, setSearch] = useState('')
+  const [semanticResults, setSemanticResults] = useState<typeof notes | null>(null)
+  const [searching, setSearching] = useState(false)
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [selectedSubject, setSelectedSubject] = useState<string>('All')
   const [noteEvaluations, setNoteEvaluations] = useState<EvaluationDetail[]>([])
   const [draftTitle, setDraftTitle] = useState('')
@@ -120,11 +124,58 @@ export function NotionWorkspace() {
       .catch(() => setNoteEvaluations([]))
   }, [activeNoteId])
 
+  useEffect(() => {
+    if (!useApi) return
+    if (sessionStorage.getItem('memoroute_semantic_ready') === '1') return
+
+    reindexNoteEmbeddings()
+      .then(() => sessionStorage.setItem('memoroute_semantic_ready', '1'))
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    if (!useApi) {
+      setSemanticResults(null)
+      return
+    }
+
+    if (searchTimerRef.current) {
+      clearTimeout(searchTimerRef.current)
+    }
+
+    const trimmed = search.trim()
+    if (trimmed.length < 2) {
+      setSemanticResults(null)
+      setSearching(false)
+      return
+    }
+
+    setSearching(true)
+    searchTimerRef.current = setTimeout(() => {
+      fetchNotes({
+        search: trimmed,
+        searchMode: 'semantic',
+        subject: selectedSubject === 'All' ? undefined : selectedSubject,
+      })
+        .then((results) => setSemanticResults(results))
+        .catch(() => setSemanticResults([]))
+        .finally(() => setSearching(false))
+    }, 400)
+
+    return () => {
+      if (searchTimerRef.current) {
+        clearTimeout(searchTimerRef.current)
+      }
+    }
+  }, [search, selectedSubject])
+
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />
   }
-  const filteredNotes = notes.filter((n) => {
+
+  const filteredNotes = (semanticResults ?? notes).filter((n) => {
     const matchesSearch =
+      semanticResults !== null ||
       n.title.toLowerCase().includes(search.toLowerCase()) ||
       n.content.toLowerCase().includes(search.toLowerCase())
     const matchesSubject = selectedSubject === 'All' || n.subject === selectedSubject
@@ -207,10 +258,17 @@ export function NotionWorkspace() {
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search notes across subjects..."
+                  placeholder="Search by concept (different words OK)..."
                   className="w-full bg-transparent text-xs text-white placeholder:text-white/40 outline-none"
                 />
               </div>
+              {search.trim().length >= 2 && (
+                <p className="mb-3 text-[10px] text-white/45">
+                  {searching
+                    ? 'Finding related concepts...'
+                    : 'Semantic search matches meaning, not exact words.'}
+                </p>
+              )}
 
               {/* Subject Filter Pills */}
               <div className="mb-4 flex flex-wrap gap-1.5">
@@ -266,6 +324,11 @@ export function NotionWorkspace() {
                           <span className="truncate">{note.subject}</span>
                           <span>{note.practiceCount} Feynman Practices</span>
                         </div>
+                        {note.similarity != null && (
+                          <p className="mt-1 text-[10px] font-semibold text-[#e8c89b]/80">
+                            Concept match {Math.round(note.similarity * 100)}%
+                          </p>
+                        )}
                       </button>
                     )
                   })

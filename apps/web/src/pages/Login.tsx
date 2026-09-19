@@ -58,7 +58,7 @@ export function Login() {
       >
         <Link to="/" className="mb-8 flex items-center justify-center gap-2 text-white">
           <Brain className="h-7 w-7 text-gold-soft" />
-          <span className="text-xl font-semibold">MemoRoute</span>
+          <span className="text-xl font-semibold">MindEcho</span>
         </Link>
 
         <h1 className="mb-2 text-center text-2xl font-bold text-white">

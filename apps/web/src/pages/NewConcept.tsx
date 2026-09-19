@@ -25,9 +25,15 @@ import {
   submitTextEvaluation,
   submitVoiceEvaluation,
   type FeynmanEvaluationResponse,
+  type PracticeQuestion,
   type RetentionImpact,
   type SubConceptScore,
 } from '../lib/api/evaluations.api'
+import {
+  addPracticeQuestion,
+  generatePracticeQuestions,
+  updatePracticeQuestion,
+} from '../lib/api/notes.api'
 
 export function NewConcept() {
   const { isAuthenticated } = useAuth()
@@ -74,6 +80,7 @@ export function NewConcept() {
         setTopicName(found.title)
         setSubject(found.subject)
         setNotesText(found.content)
+        setPracticeQuestions(found.practiceQuestions ?? [])
       }
     } else if (paramTopic) {
       setTopicName(paramTopic)
@@ -90,6 +97,63 @@ export function NewConcept() {
       setTopicName(note.title)
       setSubject(note.subject)
       setNotesText(note.content)
+      setPracticeQuestions(note.practiceQuestions ?? [])
+    }
+  }
+
+  const selectActiveQuestion = (questions: PracticeQuestion[], preferredId?: string) => {
+    const adopted = questions.filter((item) => item.adopted)
+    const pool = adopted.length > 0 ? adopted : questions
+    const next =
+      pool.find((item) => item.id === preferredId) ??
+      pool.find((item) => !item.score) ??
+      pool[0]
+
+    if (next) {
+      setActiveQuestionId(next.id)
+      setLectorQuestion(next.question)
+    }
+  }
+
+  const loadPracticeQuestions = async (noteId: string, append = false) => {
+    if (!useApi) {
+      const fallback: PracticeQuestion[] = [
+        {
+          id: 'pq-local-1',
+          question: `Explain the core idea of "${topicName || 'this topic'}" in simple words.`,
+          adopted: true,
+          source: 'ai',
+        },
+        {
+          id: 'pq-local-2',
+          question: `What is the most important application of "${topicName || 'this topic'}"?`,
+          adopted: true,
+          source: 'ai',
+        },
+        {
+          id: 'pq-local-3',
+          question: `What mistake do beginners often make about "${topicName || 'this topic'}"?`,
+          adopted: true,
+          source: 'ai',
+        },
+      ]
+      setPracticeQuestions(fallback)
+      selectActiveQuestion(fallback)
+      return
+    }
+
+    setIsGeneratingQuestions(true)
+    try {
+      const note = await generatePracticeQuestions(noteId, {
+        count: append ? 2 : 4,
+        append,
+      })
+      setPracticeQuestions(note.practiceQuestions ?? [])
+      selectActiveQuestion(note.practiceQuestions ?? [], activeQuestionId)
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Failed to generate questions')
+    } finally {
+      setIsGeneratingQuestions(false)
     }
   }
 
@@ -110,6 +174,10 @@ export function NewConcept() {
   const [micError, setMicError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [lectorQuestion, setLectorQuestion] = useState('')
+  const [practiceQuestions, setPracticeQuestions] = useState<PracticeQuestion[]>([])
+  const [activeQuestionId, setActiveQuestionId] = useState('')
+  const [customQuestionInput, setCustomQuestionInput] = useState('')
+  const [isGeneratingQuestions, setIsGeneratingQuestions] = useState(false)
   const [evaluationTranscript, setEvaluationTranscript] = useState<string | null>(null)
   const [evaluationId, setEvaluationId] = useState<string | null>(null)
   const [subConcepts, setSubConcepts] = useState<SubConceptScore[]>([])
@@ -199,13 +267,62 @@ export function NewConcept() {
         setSelectedNoteId(noteId)
       }
 
-      const question =
-        lectorQuestion ||
-        `Explain the core mechanism of ${topicName || 'this concept'} in your own words. How does it handle edge cases and what is its primary efficiency benefit?`
-      setLectorQuestion(question)
+      await loadPracticeQuestions(noteId, false)
       setStep(2)
     } finally {
       setIsProceeding(false)
+    }
+  }
+
+  const handleGenerateMoreQuestions = async () => {
+    if (!selectedNoteId) return
+    await loadPracticeQuestions(selectedNoteId, true)
+  }
+
+  const handleAddCustomQuestion = async () => {
+    const trimmed = customQuestionInput.trim()
+    if (!selectedNoteId || trimmed.length < 8) return
+
+    if (!useApi) {
+      const next: PracticeQuestion = {
+        id: `pq-local-${Date.now()}`,
+        question: trimmed,
+        adopted: true,
+        source: 'user',
+      }
+      const updated = [...practiceQuestions, next]
+      setPracticeQuestions(updated)
+      selectActiveQuestion(updated, next.id)
+      setCustomQuestionInput('')
+      return
+    }
+
+    try {
+      const note = await addPracticeQuestion(selectedNoteId, trimmed)
+      setPracticeQuestions(note.practiceQuestions ?? [])
+      selectActiveQuestion(note.practiceQuestions ?? [])
+      setCustomQuestionInput('')
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Failed to add question')
+    }
+  }
+
+  const handleToggleQuestionAdopted = async (question: PracticeQuestion) => {
+    if (!selectedNoteId || !useApi) {
+      const updated = practiceQuestions.map((item) =>
+        item.id === question.id ? { ...item, adopted: !item.adopted } : item,
+      )
+      setPracticeQuestions(updated)
+      return
+    }
+
+    try {
+      const note = await updatePracticeQuestion(selectedNoteId, question.id, {
+        adopted: !question.adopted,
+      })
+      setPracticeQuestions(note.practiceQuestions ?? [])
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Failed to update question')
     }
   }
 
@@ -281,6 +398,9 @@ export function NewConcept() {
     setRetentionImpact(res.retentionImpact || null)
     setEvaluationTranscript(res.transcript || (mode === 'text' ? textExplanation : null))
     setEvaluationId(res.evaluationId)
+    if (res.practiceQuestions?.length) {
+      setPracticeQuestions(res.practiceQuestions)
+    }
     setLectorQuestion(res.nextPrompt || lectorQuestion)
     await applyEvaluationResult(res, mode)
   }
@@ -293,6 +413,10 @@ export function NewConcept() {
     }
     if (inputMode === 'text' && !textExplanation.trim()) {
       alert('Please enter your written explanation.')
+      return
+    }
+    if (!activeQuestionId) {
+      alert('Select a practice question first.')
       return
     }
 
@@ -312,10 +436,12 @@ export function NewConcept() {
             ? await submitTextEvaluation({
                 noteId,
                 explanationText: textExplanation,
+                questionId: activeQuestionId,
               })
             : await submitVoiceEvaluation({
                 noteId,
                 audioBlob: new Blob(audioChunksRef.current, { type: 'audio/webm' }),
+                questionId: activeQuestionId,
               })
 
         await applyEvaluationToUi(res, inputMode)
@@ -564,17 +690,98 @@ export function NewConcept() {
                 <span className="text-xs text-white/50">{subject}</span>
               </div>
 
-              {/* LECTOR AI Generated Question */}
-              <div className="mb-8 rounded-2xl border border-[#e8c89b]/30 bg-[#e8c89b]/10 p-6 backdrop-blur-md">
-                <div className="mb-2 flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-[#e8c89b]" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#e8c89b]">
-                    LECTOR Generated Question
-                  </span>
+              {/* LECTOR AI Practice Question Set */}
+              <div className="mb-8 space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-[#e8c89b]" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#e8c89b]">
+                      LECTOR Practice Questions ({practiceQuestions.length})
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => void handleGenerateMoreQuestions()}
+                    disabled={isGeneratingQuestions || !selectedNoteId}
+                    className="rounded-full border border-[#e8c89b]/30 px-3 py-1 text-[11px] font-semibold text-[#e8c89b] hover:bg-[#e8c89b]/10 disabled:opacity-50"
+                  >
+                    {isGeneratingQuestions ? 'Generating…' : '+ Add more AI questions'}
+                  </button>
                 </div>
-                <h3 className="text-lg font-bold text-white leading-relaxed">
-                  &ldquo;{lectorQuestion || `Explain the core mechanism of ${topicName || 'this concept'} in your own words.`}&rdquo;
-                </h3>
+
+                <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                  {practiceQuestions.map((item) => {
+                    const isActive = item.id === activeQuestionId
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => selectActiveQuestion(practiceQuestions, item.id)}
+                        className={`w-full rounded-2xl border p-4 text-left transition ${
+                          isActive
+                            ? 'border-[#e8c89b]/60 bg-[#e8c89b]/15'
+                            : 'border-white/10 bg-white/5 hover:border-[#e8c89b]/30'
+                        } ${!item.adopted ? 'opacity-60' : ''}`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <p className="text-sm font-semibold text-white leading-relaxed">
+                            &ldquo;{item.question}&rdquo;
+                          </p>
+                          {item.score != null && (
+                            <span className="shrink-0 rounded-full bg-[#e8c89b]/20 px-2 py-0.5 text-[10px] font-bold text-[#e8c89b]">
+                              {item.score.toFixed(1)}/10
+                            </span>
+                          )}
+                        </div>
+                        <div className="mt-2 flex items-center justify-between text-[10px] text-white/50">
+                          <span>{item.source === 'user' ? 'Your question' : 'AI question'}</span>
+                          <span
+                            role="button"
+                            tabIndex={0}
+                            onClick={(event) => {
+                              event.stopPropagation()
+                              void handleToggleQuestionAdopted(item)
+                            }}
+                            onKeyDown={(event) => {
+                              if (event.key === 'Enter') {
+                                event.stopPropagation()
+                                void handleToggleQuestionAdopted(item)
+                              }
+                            }}
+                            className="font-semibold text-[#e8c89b] hover:underline"
+                          >
+                            {item.adopted ? 'Adopted' : 'Adopt question'}
+                          </span>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+
+                <div className="flex gap-2">
+                  <input
+                    value={customQuestionInput}
+                    onChange={(event) => setCustomQuestionInput(event.target.value)}
+                    placeholder="Add your own practice question..."
+                    className="glass flex-1 rounded-xl border border-white/15 px-3 py-2 text-xs text-white placeholder:text-white/40 outline-none focus:border-[#e8c89b]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => void handleAddCustomQuestion()}
+                    className="rounded-xl border border-[#e8c89b]/30 px-3 py-2 text-[11px] font-semibold text-[#e8c89b] hover:bg-[#e8c89b]/10"
+                  >
+                    Add
+                  </button>
+                </div>
+
+                {lectorQuestion && (
+                  <div className="rounded-2xl border border-[#e8c89b]/30 bg-[#e8c89b]/10 p-4">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-[#e8c89b]">
+                      Active question
+                    </p>
+                    <p className="mt-1 text-sm font-semibold text-white">&ldquo;{lectorQuestion}&rdquo;</p>
+                  </div>
+                )}
               </div>
 
               {!voiceEnabled && useApi && (
@@ -827,6 +1034,25 @@ export function NewConcept() {
                     Next review suggested in <strong>{retentionImpact.intervalDays} day(s)</strong>.{' '}
                     {retentionImpact.reason}
                   </p>
+                </div>
+              )}
+
+              {practiceQuestions.length > 0 && (
+                <div className="mb-8 rounded-2xl border border-white/15 bg-white/5 p-6">
+                  <h3 className="mb-3 text-sm font-bold text-white">Question Scores</h3>
+                  <div className="space-y-2">
+                    {practiceQuestions.filter((item) => item.adopted).map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex items-start justify-between gap-3 rounded-xl border border-white/10 px-3 py-2 text-xs"
+                      >
+                        <span className="text-white/80">{item.question}</span>
+                        <span className="shrink-0 font-mono font-bold text-[#e8c89b]">
+                          {item.score != null ? `${item.score.toFixed(1)}/10` : 'Not scored yet'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 

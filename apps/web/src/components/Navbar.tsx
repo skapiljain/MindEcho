@@ -40,7 +40,7 @@ export function Navbar() {
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#e8c89b]/15 border border-[#e8c89b]/30 transition group-hover:scale-105">
             <Brain className="h-5 w-5 text-[#e8c89b]" />
           </div>
-          <span className="text-lg font-bold tracking-tight text-white">MemoRoute</span>
+          <span className="text-lg font-bold tracking-tight text-white">MindEcho</span>
         </Link>
 
         {/* Center Nav Links */}

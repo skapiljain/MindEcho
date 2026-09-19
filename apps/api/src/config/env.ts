@@ -23,6 +23,12 @@ const envSchema = z.object({
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_BASE_URL: z.string().optional(),
   OPENAI_MODEL: z.string().optional(),
+  OPENAI_EMBEDDING_MODEL: z.string().default('text-embedding-3-small'),
+  EMBEDDING_PROVIDER: z.enum(['openai', 'mock']).default('openai'),
+  EMBEDDING_ENABLED: z
+    .enum(['true', 'false'])
+    .default('true')
+    .transform((v) => v === 'true'),
   GEMINI_API_KEY: z.string().optional(),
   ANTHROPIC_API_KEY: z.string().optional(),
   STT_PROVIDER: z.enum(['mock', 'whisper', 'deepgram']).default('mock'),

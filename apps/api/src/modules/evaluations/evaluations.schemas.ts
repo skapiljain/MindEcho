@@ -4,6 +4,7 @@ export const feynmanJsonBodySchema = z.object({
   noteId: z.string().min(1),
   explanationText: z.string().min(1, 'Explanation text is required for text mode'),
   selfRating: z.number().min(1).max(10).optional(),
+  questionId: z.string().min(1).optional(),
 })
 
 export type FeynmanJsonBody = z.infer<typeof feynmanJsonBodySchema>
@@ -17,6 +18,15 @@ export interface SubConceptResponse {
 export interface RetentionImpactResponse {
   intervalDays: number
   reason: string
+}
+
+export interface PracticeQuestionResponse {
+  id: string
+  question: string
+  score?: number
+  adopted: boolean
+  source: 'ai' | 'user'
+  lastAnsweredAt?: string
 }
 
 export interface FeynmanEvaluationResponse {
@@ -36,6 +46,8 @@ export interface FeynmanEvaluationResponse {
   misconceptions: string[]
   nextPrompt: string
   retentionImpact: RetentionImpactResponse
+  answeredQuestionId?: string
+  practiceQuestions: PracticeQuestionResponse[]
   updatedNoteState: {
     practiceCount: number
     lastPracticed: string

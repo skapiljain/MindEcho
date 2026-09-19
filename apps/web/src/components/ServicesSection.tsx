@@ -26,7 +26,7 @@ const detailedServices = [
     icon: Brain,
     title: 'Personalized Retention Engine',
     tagline: 'Dynamic Forgetting Curve Modeling',
-    desc: 'Unlike static flashcard apps with fixed timers, MemoRoute models your unique memory decay curve based on your LECTOR score history, spacing reviews at the exact moment before memory fades.',
+    desc: 'Unlike static flashcard apps with fixed timers, MindEcho models your unique memory decay curve based on your LECTOR score history, spacing reviews at the exact moment before memory fades.',
     highlights: [
       'Calibrated to your individual learning pace',
       'Prevents unnecessary over-studying',
@@ -118,7 +118,7 @@ export function ServicesSection() {
             Detailed Solutions Engineered for Deep Learning
           </h2>
           <p className="mx-auto max-w-2xl text-base text-[#f5efe8]/75">
-            Discover how MemoRoute combines cognitive memory science with LECTOR AI to transform how you learn, retain, and perform.
+            Discover how MindEcho combines cognitive memory science with LECTOR AI to transform how you learn, retain, and perform.
           </p>
         </motion.div>
 
@@ -182,7 +182,7 @@ export function ServicesSection() {
               Why We Stand Out
             </span>
             <h3 className="mt-1 text-2xl font-bold text-white sm:text-3xl">
-              How MemoRoute Differs From Traditional Learning Tools
+              How MindEcho Differs From Traditional Learning Tools
             </h3>
           </div>
 
@@ -192,7 +192,7 @@ export function ServicesSection() {
                 <tr className="border-b border-white/15 text-xs uppercase tracking-wider text-[#e8c89b]">
                   <th className="py-4 px-4 font-bold">Feature / Capability</th>
                   <th className="py-4 px-4 font-bold text-[#e8c89b] bg-[#e8c89b]/10 rounded-t-xl text-center">
-                    MemoRoute (LECTOR AI)
+                    MindEcho (LECTOR AI)
                   </th>
                   <th className="py-4 px-4 font-bold text-white/50 text-center">Anki / Quizlet</th>
                   <th className="py-4 px-4 font-bold text-white/50 text-center">Passive Re-reading</th>

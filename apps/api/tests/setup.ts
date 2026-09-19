@@ -10,6 +10,8 @@ process.env.STT_PROVIDER = 'mock'
 process.env.PAYMENT_PROVIDER = 'mock'
 process.env.NOTIFICATION_PROVIDER = 'mock'
 process.env.AUDIO_STORAGE = 'local'
+process.env.EMBEDDING_PROVIDER = 'mock'
+process.env.EMBEDDING_ENABLED = 'true'
 process.env.FEATURE_BILLING = 'true'
 process.env.FEATURE_VOICE_EVAL = 'true'
 
